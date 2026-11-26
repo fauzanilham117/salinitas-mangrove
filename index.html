@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pemantauan Lingkungan Air & Udara</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1120;
+            color: #f8fafc;
+        }
+        .font-mono-num {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+        .compass-needle {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Sistem Pemantauan Lingkungan
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Telemetri Real-Time Parameter Air & Meteorologi Udara</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+                <div id="connection-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span>Mode Simulasi (Firebase Standby)</span>
+                </div>
+                <div class="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-mono-num">
+                    Update: <span id="last-updated">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 flex-grow">
+
+        <!-- BAGIAN 1: KONDISI LINGKUNGAN AIR -->
+        <section aria-labelledby="water-section-title">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-cyan-500/20">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="water-section-title" class="text-lg sm:text-xl font-bold text-cyan-300 tracking-wide">Kondisi Lingkungan Air</h2>
+                        <p class="text-xs text-slate-400">Parameter fisik dan kimia perairan</p>
+                    </div>
+                </div>
+                <span class="text-xs font-medium px-2.5 py-1 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/50">2 Sensor Aktif</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card Suhu Air -->
+                <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Suhu Air</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="water-temp" class="text-4xl sm:text-5xl font-bold font-mono-num text-white">--.-</span>
+                                <span class="text-xl font-semibold text-cyan-400">&deg;C</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Status Termal</span>
+                        <span id="water-temp-status" class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-medium">Normal</span>
+                    </div>
+                </div>
+
+                <!-- Card Salinitas -->
+                <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Salinitas Air</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="water-salinity" class="text-4xl sm:text-5xl font-bold font-mono-num text-white">--.-</span>
+                                <span class="text-xl font-semibold text-teal-400">ppt</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-teal-500/10 text-teal-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Klasifikasi Perairan</span>
+                        <span id="water-salinity-status" class="px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-300 font-medium">Air Payau / Laut</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BAGIAN 2: KONDISI LINGKUNGAN UDARA -->
+        <section aria-labelledby="air-section-title">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-indigo-500/20">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="air-section-title" class="text-lg sm:text-xl font-bold text-indigo-300 tracking-wide">Kondisi Lingkungan Udara</h2>
+                        <p class="text-xs text-slate-400">Parameter cuaca dan dinamika atmosfer</p>
+                    </div>
+                </div>
+                <span class="text-xs font-medium px-2.5 py-1 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/50">5 Sensor Aktif</span>
+            </div>
+
+            <!-- Baris 1 Udara: Suhu, Kelembaban, Tekanan -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Card Suhu Udara -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Suhu Udara</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="air-temp" class="text-4xl font-bold font-mono-num text-white">--.-</span>
+                                <span class="text-lg font-semibold text-amber-400">&deg;C</span>
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-slate-700/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Kondisi</span>
+                        <span id="air-temp-status" class="text-amber-300 font-medium">Hangat</span>
+                    </div>
+                </div>
+
+                <!-- Card Kelembaban Udara -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Kelembaban Relatif</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="air-humidity" class="text-4xl font-bold font-mono-num text-white">--.-</span>
+                                <span class="text-lg font-semibold text-sky-400">%</span>
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-slate-700/50">
+                        <div class="w-full bg-slate-700/60 rounded-full h-1.5">
+                            <div id="humidity-bar" class="bg-sky-400 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Tekanan Udara -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Tekanan Barometrik</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="air-pressure" class="text-4xl font-bold font-mono-num text-white">----.-</span>
+                                <span class="text-lg font-semibold text-purple-400">hPa</span>
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-slate-700/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Tekanan Permukaan Laut</span>
+                        <span id="air-pressure-status" class="text-purple-300 font-medium">Stabil</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris 2 Udara: Kecepatan Angin & Arah Angin -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card Kecepatan Angin -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Kecepatan Angin</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="wind-speed" class="text-4xl sm:text-5xl font-bold font-mono-num text-white">--.-</span>
+                                <span class="text-xl font-semibold text-emerald-400">m/s</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1.5 font-mono-num">
+                                Setara dengan <span id="wind-speed-kmh" class="text-slate-200 font-semibold">--.-</span> km/j
+                            </p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Skala Beaufort</span>
+                        <span id="wind-beaufort" class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-medium">Angin Sepoi</span>
+                    </div>
+                </div>
+
+                <!-- Card Arah Angin dengan Kompas Visual -->
+                <div class="glass-card rounded-2xl p-6 flex items-center justify-between gap-4">
+                    <div class="flex flex-col justify-between h-full">
+                        <div>
+                            <p class="text-sm font-medium text-slate-400">Arah Angin</p>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span id="wind-deg" class="text-4xl sm:text-5xl font-bold font-mono-num text-white">---</span>
+                                <span class="text-xl font-semibold text-indigo-400">&deg;</span>
+                            </div>
+                            <p id="wind-cardinal" class="text-sm font-semibold text-indigo-300 mt-1.5">Utara (U)</p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-700/50 text-xs text-slate-400">
+                            Azimuth Kompas
+                        </div>
+                    </div>
+
+                    <!-- Visual Kompas -->
+                    <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-slate-700 bg-slate-900/80 flex items-center justify-center shrink-0 shadow-inner">
+                        <span class="absolute top-1.5 text-[10px] font-bold text-rose-400">U</span>
+                        <span class="absolute bottom-1.5 text-[10px] font-bold text-slate-400">S</span>
+                        <span class="absolute left-2 text-[10px] font-bold text-slate-400">B</span>
+                        <span class="absolute right-2 text-[10px] font-bold text-slate-400">T</span>
+                        
+                        <!-- Jarum Penunjuk Arah -->
+                        <div id="compass-needle" class="compass-needle w-full h-full flex items-center justify-center">
+                            <svg class="w-16 h-16" viewBox="0 0 64 64">
+                                <!-- Ujung Utara / Arah Angin (Merah/Indigo) -->
+                                <polygon points="32,6 38,32 26,32" fill="#6366f1" />
+                                <!-- Ujung Ekor (Abu-abu) -->
+                                <polygon points="32,58 38,32 26,32" fill="#475569" />
+                                <circle cx="32" cy="32" r="4" fill="#f8fafc" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
+        <p>Dashboard Telemetri Lingkungan &bull; Siap Integrasi Firebase Realtime Database</p>
+    </footer>
+
+    <!-- Script Kontrol UI & Placeholder Firebase -->
+    <script>
+        // Konversi derajat (0-360) ke arah mata angin bahasa Indonesia
+        function getCardinalDirection(deg) {
+            const directions = [
+                "Utara (U)", "Utara Timur Laut (UTL)", "Timur Laut (TL)", "Timur Timur Laut (TTL)",
+                "Timur (T)", "Timur Menenggara (TM)", "Tenggara (TG)", "Selatan Menenggara (SM)",
+                "Selatan (S)", "Selatan Barat Daya (SBD)", "Barat Daya (BD)", "Barat Barat Daya (BBD)",
+                "Barat (B)", "Barat Barat Laut (BBL)", "Barat Laut (BL)", "Utara Barat Laut (UBL)"
+            ];
+            const index = Math.round(((deg %= 360) < 0 ? deg + 360 : deg) / 22.5) % 16;
+            return directions[index];
+        }
+
+        // Klasifikasi Skala Beaufort sederhana
+        function getBeaufortLabel(speedMs) {
+            if (speedMs < 0.5) return "Tenang (Calm)";
+            if (speedMs < 1.6) return "Udara Sepoi (Light Air)";
+            if (speedMs < 3.4) return "Angin Sepoi Lemah";
+            if (speedMs < 5.5) return "Angin Sepoi Sedang";
+            if (speedMs < 8.0) return "Angin Sedang";
+            if (speedMs < 10.8) return "Angin Segar";
+            return "Angin Kencang";
+        }
+
+        // Fungsi memperbarui tampilan bagian AIR
+        function updateWaterUI(temp, salinity) {
+            document.getElementById('water-temp').textContent = Number(temp).toFixed(1);
+            document.getElementById('water-salinity').textContent = Number(salinity).toFixed(1);
+
+            const tempStatus = document.getElementById('water-temp-status');
+            if (temp < 25) {
+                tempStatus.textContent = "Dingin";
+                tempStatus.className = "px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 font-medium";
+            } else if (temp <= 31) {
+                tempStatus.textContent = "Optimal / Normal";
+                tempStatus.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-medium";
+            } else {
+                tempStatus.textContent = "Hangat / Tinggi";
+                tempStatus.className = "px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-medium";
+            }
+
+            const salStatus = document.getElementById('water-salinity-status');
+            if (salinity < 0.5) {
+                salStatus.textContent = "Air Tawar";
+            } else if (salinity <= 30) {
+                salStatus.textContent = "Air Payau";
+            } else {
+                salStatus.textContent = "Air Laut";
+            }
+        }
+
+        // Fungsi memperbarui tampilan bagian UDARA
+        function updateAirUI(temp, humidity, pressure, windSpeed, windDeg) {
+            document.getElementById('air-temp').textContent = Number(temp).toFixed(1);
+            document.getElementById('air-humidity').textContent = Number(humidity).toFixed(1);
+            document.getElementById('humidity-bar').style.width = `${Math.min(100, Math.max(0, humidity))}%`;
+            document.getElementById('air-pressure').textContent = Number(pressure).toFixed(1);
+            
+            document.getElementById('wind-speed').textContent = Number(windSpeed).toFixed(1);
+            document.getElementById('wind-speed-kmh').textContent = (Number(windSpeed) * 3.6).toFixed(1);
+            document.getElementById('wind-beaufort').textContent = getBeaufortLabel(windSpeed);
+
+            const normalizedDeg = Math.round(windDeg) % 360;
+            document.getElementById('wind-deg').textContent = normalizedDeg;
+            document.getElementById('wind-cardinal').textContent = getCardinalDirection(normalizedDeg);
+            document.getElementById('compass-needle').style.transform = `rotate(${normalizedDeg}deg)`;
+        }
+
+        // Memperbarui waktu pembaruan terakhir
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('last-updated').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+        }
+
+        // =========================================================================
+        // SIMULASI DATA REAL-TIME (Hapus/nonaktifkan blok ini saat Firebase aktif)
+        // =========================================================================
+        let simState = {
+            waterTemp: 28.4,
+            waterSalinity: 31.2,
+            airTemp: 30.1,
+            airHumidity: 74.5,
+            airPressure: 1010.4,
+            windSpeed: 3.2,
+            windDeg: 135
+        };
+
+        function runSimulation() {
+            const jitter = (val, range, min, max) => {
+                const next = val + (Math.random() - 0.5) * range;
+                return Math.min(max, Math.max(min, next));
+            };
+
+            simState.waterTemp = jitter(simState.waterTemp, 0.3, 24.0, 34.0);
+            simState.waterSalinity = jitter(simState.waterSalinity, 0.4, 0.0, 38.0);
+            simState.airTemp = jitter(simState.airTemp, 0.4, 22.0, 38.0);
+            simState.airHumidity = jitter(simState.airHumidity, 1.2, 40.0, 98.0);
+            simState.airPressure = jitter(simState.airPressure, 0.5, 995.0, 1025.0);
+            simState.windSpeed = jitter(simState.windSpeed, 0.6, 0.0, 15.0);
+            simState.windDeg = (simState.windDeg + Math.floor((Math.random() - 0.5) * 18) + 360) % 360;
+
+            updateWaterUI(simState.waterTemp, simState.waterSalinity);
+            updateAirUI(simState.airTemp, simState.airHumidity, simState.airPressure, simState.windSpeed, simState.windDeg);
+            updateTimestamp();
+        }
+
+        // Jalankan simulasi pertama kali dan ulangi setiap 3 detik
+        runSimulation();
+        const simulationInterval = setInterval(runSimulation, 3000);
+
+        // =========================================================================
+        // PANDUAN INTEGRASI FIREBASE (Aktifkan nanti saat API Key sudah tersedia)
+        // =========================================================================
+        /*
+        // 1. Tambahkan SDK Firebase di bagian <head>:
+        //    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+        //    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+        //
+        // 2. Masukkan konfigurasi proyek Firebase Anda:
+        //    const firebaseConfig = {
+        //        apiKey: "ISI_API_KEY_ANDA",
+        //        authDomain: "PROYEK_ANDA.firebaseapp.com",
+        //        databaseURL: "https://PROYEK_ANDA-default-rtdb.firebaseio.com",
+        //        projectId: "PROYEK_ANDA",
+        //        storageBucket: "PROYEK_ANDA.appspot.com",
+        //        messagingSenderId: "SENDER_ID",
+        //        appId: "APP_ID"
+        //    };
+        //
+        // 3. Inisialisasi dan dengarkan perubahan data secara real-time:
+        //    firebase.initializeApp(firebaseConfig);
+        //    const db = firebase.database();
+        //    clearInterval(simulationInterval); // Hentikan mode simulasi
+        //
+        //    // Ubah tampilan badge status koneksi
+        //    const badge = document.getElementById('connection-badge');
+        //    badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium";
+        //    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Terhubung ke Firebase Live</span>';
+        //
+        //    // Listener node data sensor (sesuaikan path 'sensor_lingkungan' dengan struktur RTDB Anda)
+        //    db.ref('sensor_lingkungan').on('value', (snapshot) => {
+        //        const data = snapshot.val();
+        //        if (!data) return;
+        //
+        //        if (data.air) {
+        //            updateWaterUI(data.air.suhu, data.air.salinitas);
+        //        }
+        //        if (data.udara) {
+        //            updateAirUI(
+        //                data.udara.suhu,
+        //                data.udara.kelembaban,
+        //                data.udara.tekanan,
+        //                data.udara.kecepatan_angin,
+        //                data.udara.arah_angin
+        //            );
+        //        }
+        //        updateTimestamp();
+        //    });
+        */
+    </script>
+</body>
+</html>
