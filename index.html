@@ -33,8 +33,8 @@
 <body class="min-h-screen flex flex-col justify-between antialiased selection:bg-cyan-500 selection:text-white">
 
     <!-- Header -->
-    <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -53,13 +53,33 @@
                 </div>
             </div>
         </div>
+
+        <!-- Menu Navigasi Filter (Semua / Air / Udara) -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-3">
+            <nav aria-label="Filter Tampilan Sensor" class="inline-flex p-1 rounded-xl bg-slate-950/80 border border-slate-800 w-full sm:w-auto">
+                <button type="button" onclick="setFilter('all')" id="tab-all"
+                    class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-slate-800 text-white shadow">
+                    Semua Data
+                </button>
+                <button type="button" onclick="setFilter('water')" id="tab-water"
+                    class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-cyan-300 transition-all flex items-center justify-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                    Air Saja
+                </button>
+                <button type="button" onclick="setFilter('air')" id="tab-air"
+                    class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-indigo-300 transition-all flex items-center justify-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                    Udara Saja
+                </button>
+            </nav>
+        </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 flex-grow">
 
         <!-- BAGIAN 1: KONDISI LINGKUNGAN AIR -->
-        <section aria-labelledby="water-section-title">
+        <section id="section-water" aria-labelledby="water-section-title" class="transition-all duration-300">
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-cyan-500/20">
                 <div class="flex items-center gap-3">
                     <div class="p-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
@@ -126,7 +146,7 @@
         </section>
 
         <!-- BAGIAN 2: KONDISI LINGKUNGAN UDARA -->
-        <section aria-labelledby="air-section-title">
+        <section id="section-air" aria-labelledby="air-section-title" class="transition-all duration-300">
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-indigo-500/20">
                 <div class="flex items-center gap-3">
                     <div class="p-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
@@ -265,9 +285,7 @@
                         <!-- Jarum Penunjuk Arah -->
                         <div id="compass-needle" class="compass-needle w-full h-full flex items-center justify-center">
                             <svg class="w-16 h-16" viewBox="0 0 64 64">
-                                <!-- Ujung Utara / Arah Angin (Merah/Indigo) -->
                                 <polygon points="32,6 38,32 26,32" fill="#6366f1" />
-                                <!-- Ujung Ekor (Abu-abu) -->
                                 <polygon points="32,58 38,32 26,32" fill="#475569" />
                                 <circle cx="32" cy="32" r="4" fill="#f8fafc" />
                             </svg>
@@ -286,6 +304,36 @@
 
     <!-- Script Kontrol UI & Placeholder Firebase -->
     <script>
+        // Fungsi Filter Tampilan (Semua / Air / Udara)
+        function setFilter(mode) {
+            const waterSec = document.getElementById('section-water');
+            const airSec = document.getElementById('section-air');
+            
+            const tabAll = document.getElementById('tab-all');
+            const tabWater = document.getElementById('tab-water');
+            const tabAir = document.getElementById('tab-air');
+
+            const baseBtn = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-400 transition-all flex items-center justify-center gap-1.5";
+            
+            tabAll.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition-all";
+            tabWater.className = baseBtn + " hover:text-cyan-300";
+            tabAir.className = baseBtn + " hover:text-indigo-300";
+
+            if (mode === 'all') {
+                waterSec.classList.remove('hidden');
+                airSec.classList.remove('hidden');
+                tabAll.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-slate-800 text-white shadow";
+            } else if (mode === 'water') {
+                waterSec.classList.remove('hidden');
+                airSec.classList.add('hidden');
+                tabWater.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-cyan-950/90 text-cyan-300 border border-cyan-500/30 shadow flex items-center justify-center gap-1.5";
+            } else if (mode === 'air') {
+                waterSec.classList.add('hidden');
+                airSec.classList.remove('hidden');
+                tabAir.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-indigo-950/90 text-indigo-300 border border-indigo-500/30 shadow flex items-center justify-center gap-1.5";
+            }
+        }
+
         // Konversi derajat (0-360) ke arah mata angin bahasa Indonesia
         function getCardinalDirection(deg) {
             const directions = [
@@ -396,54 +444,60 @@
         const simulationInterval = setInterval(runSimulation, 3000);
 
         // =========================================================================
-        // PANDUAN INTEGRASI FIREBASE (Aktifkan nanti saat API Key sudah tersedia)
+        // INTEGRASI FIREBASE REALTIME DATABASE (Siap pakai saat API Key tersedia)
         // =========================================================================
-        /*
-        // 1. Tambahkan SDK Firebase di bagian <head>:
-        //    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-        //    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-        //
-        // 2. Masukkan konfigurasi proyek Firebase Anda:
-        //    const firebaseConfig = {
-        //        apiKey: "ISI_API_KEY_ANDA",
-        //        authDomain: "PROYEK_ANDA.firebaseapp.com",
-        //        databaseURL: "https://PROYEK_ANDA-default-rtdb.firebaseio.com",
-        //        projectId: "PROYEK_ANDA",
-        //        storageBucket: "PROYEK_ANDA.appspot.com",
-        //        messagingSenderId: "SENDER_ID",
-        //        appId: "APP_ID"
-        //    };
-        //
-        // 3. Inisialisasi dan dengarkan perubahan data secara real-time:
-        //    firebase.initializeApp(firebaseConfig);
-        //    const db = firebase.database();
-        //    clearInterval(simulationInterval); // Hentikan mode simulasi
-        //
-        //    // Ubah tampilan badge status koneksi
-        //    const badge = document.getElementById('connection-badge');
-        //    badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium";
-        //    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Terhubung ke Firebase Live</span>';
-        //
-        //    // Listener node data sensor (sesuaikan path 'sensor_lingkungan' dengan struktur RTDB Anda)
-        //    db.ref('sensor_lingkungan').on('value', (snapshot) => {
-        //        const data = snapshot.val();
-        //        if (!data) return;
-        //
-        //        if (data.air) {
-        //            updateWaterUI(data.air.suhu, data.air.salinitas);
-        //        }
-        //        if (data.udara) {
-        //            updateAirUI(
-        //                data.udara.suhu,
-        //                data.udara.kelembaban,
-        //                data.udara.tekanan,
-        //                data.udara.kecepatan_angin,
-        //                data.udara.arah_angin
-        //            );
-        //        }
-        //        updateTimestamp();
-        //    });
-        */
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            databaseURL: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        function initFirebaseLive() {
+            if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) return;
+
+            const appScript = document.createElement('script');
+            appScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+            appScript.onload = () => {
+                const dbScript = document.createElement('script');
+                dbScript.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js";
+                dbScript.onload = () => {
+                    firebase.initializeApp(firebaseConfig);
+                    const db = firebase.database();
+                    clearInterval(simulationInterval);
+
+                    const badge = document.getElementById('connection-badge');
+                    badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium";
+                    badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Terhubung ke Firebase Live</span>';
+
+                    db.ref('sensor_lingkungan').on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        if (!data) return;
+
+                        if (data.air) {
+                            updateWaterUI(data.air.suhu, data.air.salinitas);
+                        }
+                        if (data.udara) {
+                            updateAirUI(
+                                data.udara.suhu,
+                                data.udara.kelembaban,
+                                data.udara.tekanan,
+                                data.udara.kecepatan_angin,
+                                data.udara.arah_angin
+                            );
+                        }
+                        updateTimestamp();
+                    });
+                };
+                document.head.appendChild(dbScript);
+            };
+            document.head.appendChild(appScript);
+        }
+
+        initFirebaseLive();
     </script>
 </body>
 </html>
